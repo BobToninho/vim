@@ -245,35 +245,31 @@ fuzzy_match_in_list(
 	    break;
 
 	rettv.v_type = VAR_UNKNOWN;
-	if (li->li_tv.v_type == VAR_STRING)	// list of strings
-	    itemstr = li->li_tv.vval.v_string;
-	else if (li->li_tv.v_type == VAR_DICT
-				&& (key != NULL || item_cb->cb_name != NULL))
+	if (item_cb->cb_name != NULL)
 	{
-	    // For a dict, either use the specified key to lookup the string or
-	    // use the specified callback function to get the string.
-	    if (key != NULL)
-		itemstr = dict_get_string(li->li_tv.vval.v_dict,
-							   (char *)key, FALSE);
-	    else
-	    {
-		typval_T	argv[2];
+	    typval_T	argv[2];
 
-		// Invoke the supplied callback (if any) to get the dict item
-		li->li_tv.vval.v_dict->dv_refcount++;
-		argv[0].v_type = VAR_DICT;
-		argv[0].vval.v_dict = li->li_tv.vval.v_dict;
-		argv[1].v_type = VAR_UNKNOWN;
-		if (call_callback(item_cb, -1, &rettv, 1, argv) != FAIL)
+	    // Invoke the supplied callback to get the string
+	    copy_tv(&li->li_tv, &argv[0]);
+	    argv[1].v_type = VAR_UNKNOWN;
+	    if (call_callback(item_cb, -1, &rettv, 1, argv) != FAIL)
+	    {
+		if (rettv.v_type == VAR_STRING)
 		{
-		    if (rettv.v_type == VAR_STRING)
-		    {
-			itemstr = rettv.vval.v_string;
-			itemstr_allocate = TRUE;
-		    }
+		    itemstr = rettv.vval.v_string;
+		    itemstr_allocate = TRUE;
 		}
-		dict_unref(li->li_tv.vval.v_dict);
 	    }
+	    clear_tv(&argv[0]);
+	}
+	else if (li->li_tv.v_type == VAR_DICT && key != NULL)
+	{
+	    // For a dict, use the specified key to lookup the string
+	    itemstr = dict_get_string(li->li_tv.vval.v_dict, (char *)key, FALSE);
+	}
+	else if (li->li_tv.v_type == VAR_STRING)
+	{
+	    itemstr = li->li_tv.vval.v_string;
 	}
 
 	if (itemstr != NULL

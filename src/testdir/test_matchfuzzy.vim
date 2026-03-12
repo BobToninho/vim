@@ -185,6 +185,23 @@ func Test_matchfuzzypos()
         \ matchfuzzypos(['things','sThings', 'thisThings'], 'thin'))
 endfunc
 
+" Test for matchfuzzypos() with text_cb consistency
+func Test_matchfuzzypos_text_cb_consistency()
+  " Test with list of strings and text_cb
+  let l = ['/home/user/config']
+  let res = matchfuzzypos(l, 'config', {'text_cb': {v -> fnamemodify(v, ':t')}})
+  call assert_equal(['/home/user/config'], res[0])
+  " Currently this returns [[11, 12, 13, 14, 15, 16]] because text_cb is ignored
+  " The expected behavior is [[0, 1, 2, 3, 4, 5]]
+  call assert_equal([[0, 1, 2, 3, 4, 5]], res[1])
+
+  " Test with list of dicts and text_cb (already works, but for comparison)
+  let l = [{'path': '/home/user/config', 'name': 'config'}]
+  let res = matchfuzzypos(l, 'config', {'text_cb': {v -> v.name}})
+  call assert_equal([{'path': '/home/user/config', 'name': 'config'}], res[0])
+  call assert_equal([[0, 1, 2, 3, 4, 5]], res[1])
+endfunc
+
 " Test for matchfuzzy() with multibyte characters
 func Test_matchfuzzy_mbyte()
   CheckFeature multi_lang

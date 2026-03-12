@@ -7519,16 +7519,19 @@ matchfuzzy({list}, {str} [, {dict}])			*matchfuzzy()*
 		    limit	Maximum number of matches in {list} to be
 				returned.  Zero means no limit.
 
-		If {list} is a list of dictionaries, then the optional {dict}
-		argument supports the following additional items:
-		    key		Key of the item which is fuzzy matched against
-				{str}.  The value of this item should be a
-				string.
+		The optional {dict} argument supports the following additional
+		items:
+		    key		If {list} is a list of dictionaries, this is
+				the key of the item which is fuzzy matched
+				against {str}.  The value of this item should
+				be a string.
 		    text_cb	|Funcref| that will be called for every item
 				in {list} to get the text for fuzzy matching.
-				This should accept a dictionary item as the
-				argument and return the text for that item to
-				use for fuzzy matching.
+				This should accept a list item as the argument
+				and return the text for that item to use for
+				fuzzy matching.  The matching positions
+				returned in |matchfuzzypos()| are relative to
+				this text.
 
 		{str} is treated as a literal string and regular expression
 		matching is NOT supported.  The maximum supported {str} length
@@ -7575,8 +7578,10 @@ matchfuzzy({list}, {str} [, {dict}])			*matchfuzzy()*
 matchfuzzypos({list}, {str} [, {dict}])			*matchfuzzypos()*
 		Same as |matchfuzzy()|, but returns the list of matched
 		strings, the list of character positions where characters
-		in {str} matches and a list of matching scores.  You can
-		use |byteidx()| to convert a character position to a byte
+		in {str} matches and a list of matching scores.  The matching
+		positions are relative to the string used for matching (see
+		'key' and 'text_cb' in |matchfuzzy()|).  You can use
+		|byteidx()| to convert a character position to a byte
 		position.
 
 		If {str} matches multiple times in a string, then only the
